@@ -1,14 +1,9 @@
 let nombre = prompt("Ingrese su nombre: ");
-
-while (nombre === ""){
-    alert("Por favor, ingrese su nombre.");
-    nombre = prompt("Ingrese su nombre: ");
-}
-
 let rut = prompt("Ingrese su RUT: ");
 
-while (rut === ""){
-    alert("Por favor, ingrese su RUT.");
+while (nombre === "" || rut === ""){
+    alert("Por favor, ingrese su nombre y su RUT.");
+    nombre = prompt("Ingrese su nombre: ");
     rut = prompt("Ingrese su RUT: ");
 }
 
@@ -28,7 +23,7 @@ do {
 let montoTotal = parseFloat(monto);
 let montoPorCausa;
 
-if (montoTotal >= 10000) {
+if (montoTotal >= 10000 && cant_causas > 1) {
     montoPorCausa = montoTotal / cant_causas;
 
     for (let i = 1; i <= cant_causas; i++) {
@@ -36,9 +31,9 @@ if (montoTotal >= 10000) {
         alert(`Usted ha donado ${montoPorCausa} a la causa "${nombreCausa}".`);
     }
 } else {
-    alert("Su donación total es menor a $10000, no se pueden dividir en causas.");
+    alert("Su donación total es menor a $10000 o la cantidad de causas es insuficiente para dividir la donación.");
 }
 
-
 alert("Los datos de su donación son: " + "Nombre: " + nombre + "  " + "RUT: " + rut + "  " + "Cantidad de causas a la que donará: " + cant_causas + "  " + "Monto por causa: " + montoPorCausa + "  " + "Monto total a donar: " + monto );
+
 
