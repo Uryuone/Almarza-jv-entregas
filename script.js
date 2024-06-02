@@ -1,3 +1,5 @@
+// script.js
+
 // Función constructora de causas
 function Causa(nombre, area) {
     this.nombre = nombre;
@@ -28,77 +30,102 @@ function esTextoValido(texto) {
     return /^[a-zA-Z\s]+$/.test(texto);
 }
 
-// Función para validar números enteros
-function esNumeroEntero(numero) {
-    return /^[0-9]+$/.test(numero);
-}
-
-// Función para validar números flotantes
-function esNumeroFlotante(numero) {
-    return /^[0-9]+(\.[0-9]+)?$/.test(numero);
-}
-
 // Función para validar RUT (solo números, guiones y puntos)
 function esRUTValido(rut) {
     return /^[0-9]+[-.0-9]+$/.test(rut);
 }
 
-// Declaración de variables
-let nombre;
-let rut;
-let monto;
-let causaSeleccionada;
+// Manejo del DOM y eventos
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('donationForm');
+    const areaSelect = document.getElementById('area');
+    const causaSelect = document.getElementById('causa');
+    const donationDetails = document.getElementById('donationDetails');
 
-// Solicitar nombre y validar que sea texto
-do {
-    nombre = prompt("Ingrese su nombre: ");
-    if (!esTextoValido(nombre)) {
-        alert("Por favor, ingrese un nombre válido (solo texto).");
-    }
-} while (!esTextoValido(nombre));
+    // Manejar el cambio en el área para filtrar causas
+    areaSelect.addEventListener('change', (e) => {
+        const area = e.target.value;
+        const causasFiltradas = filtrarCausasPorArea(listaCausas, area);
 
-// Solicitar RUT y validar que sea correcto
-do {
-    rut = prompt("Ingrese su RUT: ");
-    if (!esRUTValido(rut)) {
-        alert("Por favor, ingrese un RUT válido (solo números, guiones y puntos).");
-    }
-} while (!esRUTValido(rut));
+        // Limpiar el select de causas
+        causaSelect.innerHTML = '<option value="">Seleccione una causa</option>';
 
-// Solicitar monto y validar que sea un número flotante
-do {
-    monto = prompt("Ingrese monto a aportar: ");
-    if (!esNumeroFlotante(monto)) {
-        alert("Por favor, ingrese un monto válido (número flotante).");
-    }
-} while (!esNumeroFlotante(monto));
+        // Agregar las causas filtradas al select
+        causasFiltradas.forEach(causa => {
+            const option = document.createElement('option');
+            option.value = causa.nombre;
+            option.textContent = causa.nombre;
+            causaSelect.appendChild(option);
+        });
+    });
 
-monto = parseFloat(monto); // Convertir monto a número flotante
+    // Manejar el envío del formulario
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
 
-// Solicitar área para filtrar causas
-let areaFiltrar = prompt("Ingrese el área por la cual desea filtrar las causas (ej. educación, salud, construcción, emprendimiento):");
-let causasFiltradas = filtrarCausasPorArea(listaCausas, areaFiltrar);
+        const nombre = document.getElementById('nombre').value;
+        const rut = document.getElementById('rut').value;
+        const monto = document.getElementById('monto').value;
+        const causaNombre = causaSelect.value;
+        const area = areaSelect.value;
 
-// Verificar si hay causas disponibles en el área seleccionada
-if (causasFiltradas.length > 0) {
-    let causasNombres = causasFiltradas.map(causa => causa.nombre).join('\n');
+        // Validar los datos
+        if (!esTextoValido(nombre)) {
+            alert("Por favor, ingrese un nombre válido (solo texto).");
+            return;
+        }
 
-    // Solicitar selección de causa y validar que sea una causa existente
-    do {
-        let causaSeleccionadaNombre = prompt(`Las causas disponibles en el área de ${areaFiltrar} son:\n${causasNombres}\nIngrese el nombre de la causa a la que desea donar:`);
-        causaSeleccionada = buscarCausaPorNombre(causasFiltradas, causaSeleccionadaNombre);
+        if (!esRUTValido(rut)) {
+            alert("Por favor, ingrese un RUT válido (solo números, guiones y puntos).");
+            return;
+        }
+
+        const causaSeleccionada = buscarCausaPorNombre(listaCausas, causaNombre);
 
         if (!causaSeleccionada) {
-            alert("No se encontró una causa con ese nombre. Por favor, intente de nuevo.");
+            alert("Por favor, seleccione una causa válida.");
+            return;
         }
-    } while (!causaSeleccionada);
 
-    alert(`Usted ha seleccionado donar a la causa: ${causaSeleccionada.nombre} en el área de ${causaSeleccionada.area}`);
-} else {
-    alert(`No se encontraron causas en el área de ${areaFiltrar}.`);
-    causaSeleccionada = null; // Asegurar que causaSeleccionada sea null
-}
+        // Mostrar detalles de la donación
+        document.getElementById('detalleNombre').textContent = `Nombre: ${nombre}`;
+        document.getElementById('detalleRUT').textContent = `RUT: ${rut}`;
+        document.getElementById('detalleCausa').textContent = `Causa: ${causaSeleccionada.nombre} (${causaSeleccionada.area})`;
+        document.getElementById('detalleMonto').textContent = `Monto: ${monto}`;
+        donationDetails.classList.remove('hidden');
 
-if (causaSeleccionada) {
-    alert("Los datos de su donación son: " + "Nombre: " + nombre + "  " + "RUT: " + rut + "  " + "Causa a la que donará: " + causaSeleccionada.nombre + "  " + "Monto total a donar: " + monto);
-}
+        // Guardar en localStorage
+        const donacion = {
+            nombre: nombre,
+            rut: rut,
+            monto: monto,
+            causa: causaSeleccionada.nombre,
+            area: causaSeleccionada.area
+        };
+
+        localStorage.setItem('donacion', JSON.stringify(donacion));
+    });
+
+    // Cargar datos de localStorage (si existen)
+    const donacionGuardada = localStorage.getItem('donacion');
+    if (donacionGuardada) {
+        const donacion = JSON.parse(donacionGuardada);
+        document.getElementById('nombre').value = donacion.nombre;
+        document.getElementById('rut').value = donacion.rut;
+        document.getElementById('monto').value = donacion.monto;
+        areaSelect.value = donacion.area;
+
+        // Simular cambio en el área para llenar el select de causas
+        const event = new Event('change');
+        areaSelect.dispatchEvent(event);
+
+        causaSelect.value = donacion.causa;
+
+        // Mostrar detalles de la donación
+        document.getElementById('detalleNombre').textContent = `Nombre: ${donacion.nombre}`;
+        document.getElementById('detalleRUT').textContent = `RUT: ${donacion.rut}`;
+        document.getElementById('detalleCausa').textContent = `Causa: ${donacion.causa} (${donacion.area})`;
+        document.getElementById('detalleMonto').textContent = `Monto: ${donacion.monto}`;
+        donationDetails.classList.remove('hidden');
+    }
+});
