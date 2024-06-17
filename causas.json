@@ -1,0 +1,26 @@
+[
+    {
+        "nombre": "Ayudemos a Juana",
+        "area": "salud",
+        "descripcion": "Ayuda a Juana a costear sus tratamientos médicos.",
+        "imagen": "https://b2247919.smushcdn.com/2247919/wp-content/uploads/2024/06/DSC01458-700x700.jpg?lossy=1&amp;strip=1&amp;webp=1"
+    },
+    {
+        "nombre": "Construyamos una escuela en Colico Alto",
+        "area": "educación",
+        "descripcion": "Construyamos una nueva escuela para los niños de Colico Alto.",
+        "imagen": "https://b2247919.smushcdn.com/2247919/wp-content/uploads/2023/11/WEB-DESAFIO-AREAS-02.jpg?lossy=1&strip=1&webp=1"
+    },
+    {
+        "nombre": "Apoyemos el emprendimiento local",
+        "area": "emprendimiento",
+        "descripcion": "Ayuda a los emprendedores locales a crecer sus negocios.",
+        "imagen": "https://b2247919.smushcdn.com/2247919/wp-content/uploads/2024/06/DSC01175-700x700.jpg?lossy=1&strip=1&webp=1"
+    },
+    {
+        "nombre": "Mejoras en infraestructura comunitaria",
+        "area": "construcción",
+        "descripcion": "Contribuye a mejorar la infraestructura de nuestra comunidad.",
+        "imagen": "https://b2247919.smushcdn.com/2247919/wp-content/uploads/2024/06/DSC01092-3-700x700.jpg?lossy=1&strip=1&webp=1"
+    }
+]

@@ -1,131 +1,174 @@
-// script.js
-
-// Función constructora de causas
-function Causa(nombre, area) {
-    this.nombre = nombre;
-    this.area = area;
-}
-
-// Causas predefinidas
-let causa1 = new Causa("Ayudemos a Juana", "salud");
-let causa2 = new Causa("Construyamos una escuela en Colico Alto", "educación");
-let causa3 = new Causa("Apoyemos el emprendimiento local", "emprendimiento");
-let causa4 = new Causa("Mejoras en infraestructura comunitaria", "construcción");
-
-// Lista de causas
-let listaCausas = [causa1, causa2, causa3, causa4];
-
-// Función para filtrar causas por área
-function filtrarCausasPorArea(causas, area) {
-    return causas.filter(causa => causa.area.toLowerCase() === area.toLowerCase());
-}
-
-// Función para buscar una causa por nombre
-function buscarCausaPorNombre(causas, nombre) {
-    return causas.find(causa => causa.nombre.toLowerCase() === nombre.toLowerCase());
-}
-
-// Función para validar texto (solo letras y espacios)
-function esTextoValido(texto) {
-    return /^[a-zA-Z\s]+$/.test(texto);
-}
-
-// Función para validar RUT (solo números, guiones y puntos)
-function esRUTValido(rut) {
-    return /^[0-9]+[-.0-9]+$/.test(rut);
-}
-
-// Manejo del DOM y eventos
 document.addEventListener('DOMContentLoaded', () => {
+    const causasContainer = document.getElementById('causasContainer');
+
+    fetch('causas.json')
+        .then(response => response.json())
+        .then(listaCausas => {
+            listaCausas.forEach(causa => {
+                // Crear tarjeta para cada causa
+                const card = document.createElement('div');
+                card.classList.add('card');
+
+                const img = document.createElement('img');
+                img.src = causa.imagen;
+                img.alt = causa.nombre;
+
+                const title = document.createElement('h3');
+                title.textContent = causa.nombre;
+
+                const description = document.createElement('p');
+                description.textContent = causa.descripcion;
+
+                const button = document.createElement('button');
+                button.textContent = 'Donar';
+                button.addEventListener('click', () => {
+                    window.location.href = `index.html?causa=${encodeURIComponent(causa.nombre)}`;
+                });
+
+                card.appendChild(img);
+                card.appendChild(title);
+                card.appendChild(description);
+                card.appendChild(button);
+
+                causasContainer.appendChild(card);
+            });
+        })
+        .catch(error => console.error('Error al cargar las causas:', error));
+
+    // Código existente para manejar el formulario de donación
     const form = document.getElementById('donationForm');
     const areaSelect = document.getElementById('area');
     const causaSelect = document.getElementById('causa');
+    const causaImagenContainer = document.getElementById('causaImagenContainer');
+    const causaImagen = document.getElementById('causaImagen');
     const donationDetails = document.getElementById('donationDetails');
+    const detalleImagen = document.getElementById('detalleImagen');
 
-    // Manejar el cambio en el área para filtrar causas
-    areaSelect.addEventListener('change', (e) => {
-        const area = e.target.value;
-        const causasFiltradas = filtrarCausasPorArea(listaCausas, area);
+    const params = new URLSearchParams(window.location.search);
+    const selectedCausa = params.get('causa');
 
-        // Limpiar el select de causas
-        causaSelect.innerHTML = '<option value="">Seleccione una causa</option>';
+    fetch('causas.json')
+        .then(response => response.json())
+        .then(listaCausas => {
+            areaSelect.addEventListener('change', (e) => {
+                const area = e.target.value;
+                const causasFiltradas = listaCausas.filter(causa => causa.area.toLowerCase() === area.toLowerCase());
 
-        // Agregar las causas filtradas al select
-        causasFiltradas.forEach(causa => {
-            const option = document.createElement('option');
-            option.value = causa.nombre;
-            option.textContent = causa.nombre;
-            causaSelect.appendChild(option);
-        });
-    });
+                // Limpiar el select de causas
+                causaSelect.innerHTML = '<option value="">Seleccione una causa</option>';
 
-    // Manejar el envío del formulario
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
+                // Agregar las causas filtradas al select
+                causasFiltradas.forEach(causa => {
+                    const option = document.createElement('option');
+                    option.value = causa.nombre;
+                    option.textContent = causa.nombre;
+                    causaSelect.appendChild(option);
+                });
+            });
 
-        const nombre = document.getElementById('nombre').value;
-        const rut = document.getElementById('rut').value;
-        const monto = document.getElementById('monto').value;
-        const causaNombre = causaSelect.value;
-        const area = areaSelect.value;
+            // Mostrar imagen de la causa seleccionada
+            causaSelect.addEventListener('change', (e) => {
+                const causaNombre = e.target.value;
+                const causaSeleccionada = listaCausas.find(causa => causa.nombre === causaNombre);
 
-        // Validar los datos
-        if (!esTextoValido(nombre)) {
-            alert("Por favor, ingrese un nombre válido (solo texto).");
-            return;
-        }
+                if (causaSeleccionada) {
+                    causaImagen.src = causaSeleccionada.imagen;
+                    causaImagenContainer.classList.remove('hidden');
+                } else {
+                    causaImagenContainer.classList.add('hidden');
+                }
+            });
 
-        if (!esRUTValido(rut)) {
-            alert("Por favor, ingrese un RUT válido (solo números, guiones y puntos).");
-            return;
-        }
+            // Manejar el envío del formulario
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
 
-        const causaSeleccionada = buscarCausaPorNombre(listaCausas, causaNombre);
+                const nombre = document.getElementById('nombre').value;
+                const rut = document.getElementById('rut').value;
+                const monto = document.getElementById('monto').value;
+                const causaNombre = causaSelect.value;
+                const area = areaSelect.value;
 
-        if (!causaSeleccionada) {
-            alert("Por favor, seleccione una causa válida.");
-            return;
-        }
+                const causaSeleccionada = listaCausas.find(causa => causa.nombre === causaNombre);
 
-        // Mostrar detalles de la donación
-        document.getElementById('detalleNombre').textContent = `Nombre: ${nombre}`;
-        document.getElementById('detalleRUT').textContent = `RUT: ${rut}`;
-        document.getElementById('detalleCausa').textContent = `Causa: ${causaSeleccionada.nombre} (${causaSeleccionada.area})`;
-        document.getElementById('detalleMonto').textContent = `Monto: ${monto}`;
-        donationDetails.classList.remove('hidden');
+                if (!causaSeleccionada) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Por favor, seleccione una causa válida.'
+                    });
+                    return;
+                }
 
-        // Guardar en localStorage
-        const donacion = {
-            nombre: nombre,
-            rut: rut,
-            monto: monto,
-            causa: causaSeleccionada.nombre,
-            area: causaSeleccionada.area
-        };
+                // Mostrar detalles de la donación
+                document.getElementById('detalleNombre').textContent = `Nombre: ${nombre}`;
+                document.getElementById('detalleRUT').textContent = `RUT: ${rut}`;
+                document.getElementById('detalleCausa').textContent = `Causa: ${causaSeleccionada.nombre} (${causaSeleccionada.area})`;
+                document.getElementById('detalleMonto').textContent = `Monto: ${monto}`;
+                detalleImagen.src = causaSeleccionada.imagen;
+                donationDetails.classList.remove('hidden');
 
-        localStorage.setItem('donacion', JSON.stringify(donacion));
-    });
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Donación exitosa',
+                    text: 'Gracias por tu donación!',
+                });
 
-    // Cargar datos de localStorage (si existen)
-    const donacionGuardada = localStorage.getItem('donacion');
-    if (donacionGuardada) {
-        const donacion = JSON.parse(donacionGuardada);
-        document.getElementById('nombre').value = donacion.nombre;
-        document.getElementById('rut').value = donacion.rut;
-        document.getElementById('monto').value = donacion.monto;
-        areaSelect.value = donacion.area;
+                // Guardar en localStorage
+                const donacion = {
+                    nombre: nombre,
+                    rut: rut,
+                    monto: monto,
+                    causa: causaSeleccionada.nombre,
+                    area: causaSeleccionada.area,
+                    imagen: causaSeleccionada.imagen
+                };
 
-        // Simular cambio en el área para llenar el select de causas
-        const event = new Event('change');
-        areaSelect.dispatchEvent(event);
+                localStorage.setItem('donacion', JSON.stringify(donacion));
+            });
 
-        causaSelect.value = donacion.causa;
+            // Cargar datos de localStorage (si existen)
+            const donacionGuardada = localStorage.getItem('donacion');
+            if (donacionGuardada) {
+                const donacion = JSON.parse(donacionGuardada);
+                document.getElementById('nombre').value = donacion.nombre;
+                document.getElementById('rut').value = donacion.rut;
+                document.getElementById('monto').value = donacion.monto;
+                areaSelect.value = donacion.area;
 
-        // Mostrar detalles de la donación
-        document.getElementById('detalleNombre').textContent = `Nombre: ${donacion.nombre}`;
-        document.getElementById('detalleRUT').textContent = `RUT: ${donacion.rut}`;
-        document.getElementById('detalleCausa').textContent = `Causa: ${donacion.causa} (${donacion.area})`;
-        document.getElementById('detalleMonto').textContent = `Monto: ${donacion.monto}`;
-        donationDetails.classList.remove('hidden');
-    }
+                // Simular cambio en el área para llenar el select de causas
+                const event = new Event('change');
+                areaSelect.dispatchEvent(event);
+
+                causaSelect.value = donacion.causa;
+                causaImagen.src = donacion.imagen;
+                causaImagenContainer.classList.remove('hidden');
+
+                // Mostrar detalles de la donación
+                document.getElementById('detalleNombre').textContent = `Nombre: ${donacion.nombre}`;
+                document.getElementById('detalleRUT').textContent = `RUT: ${donacion.rut}`;
+                document.getElementById('detalleCausa').textContent = `Causa: ${donacion.causa} (${donacion.area})`;
+                document.getElementById('detalleMonto').textContent = `Monto: ${donacion.monto}`;
+                detalleImagen.src = donacion.imagen;
+                donationDetails.classList.remove('hidden');
+            }
+
+            // Si hay una causa seleccionada en la URL, filtrarla automáticamente
+            if (selectedCausa) {
+                const causaSeleccionada = listaCausas.find(causa => causa.nombre === selectedCausa);
+
+                if (causaSeleccionada) {
+                    areaSelect.value = causaSeleccionada.area;
+
+                    // Simular cambio en el área para llenar el select de causas
+                    const event = new Event('change');
+                    areaSelect.dispatchEvent(event);
+
+                    causaSelect.value = causaSeleccionada.nombre;
+                    causaImagen.src = causaSeleccionada.imagen;
+                    causaImagenContainer.classList.remove('hidden');
+                }
+            }
+        })
+        .catch(error => console.error('Error al cargar las causas:', error));
 });
